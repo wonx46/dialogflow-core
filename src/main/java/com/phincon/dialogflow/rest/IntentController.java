@@ -5,12 +5,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.opencsv.CSVReader;
 import com.phincon.dialogflow.management.IntentManagement;
+import com.phincon.dialogflow.model.DialogflowRequest;
 
 @RestController
 @RequestMapping("phincon/dialogflow/intent")
@@ -27,17 +28,16 @@ public class IntentController {
 	IntentManagement intentManagement;
 
 	@RequestMapping(value = "/detect", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Object> detectIntentText(@RequestParam(value = "textValue") String textValue) throws Exception {
+	public ResponseEntity<Object> detectIntentText(@RequestBody DialogflowRequest request) throws Exception {
 		
-		String sessionId = UUID.randomUUID().toString();
-	    Object out = intentManagement.detectIntent(textValue, sessionId);
+	    Object out = intentManagement.detectIntent(request);
 	    return new ResponseEntity<Object>(out, HttpStatus.OK);
 	}
 	
 	@RequestMapping(value = "/delete", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Object> deleteIntent(@RequestParam(value = "textValue") String textValue) throws Exception {
+	public ResponseEntity<Object> deleteIntent(@RequestBody DialogflowRequest request) throws Exception {
 		
-		Object out = intentManagement.deleteIntent(textValue);
+		Object out = intentManagement.deleteIntent(request);
 	    return new ResponseEntity<Object>(out, HttpStatus.OK);
 	}
 	

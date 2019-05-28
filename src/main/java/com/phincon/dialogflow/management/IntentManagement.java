@@ -17,8 +17,10 @@ import com.google.cloud.dialogflow.v2.SessionName;
 import com.google.cloud.dialogflow.v2.SessionsClient;
 import com.google.cloud.dialogflow.v2.TextInput;
 import com.google.cloud.dialogflow.v2.UpdateIntentRequest;
+import com.phincon.dialogflow.model.DialogflowRequest;
 import com.google.cloud.dialogflow.v2.Intent.Message;
 import com.google.cloud.dialogflow.v2.Intent.TrainingPhrase;
+import com.google.cloud.dialogflow.v2.Intent.Message.Platform;
 import com.google.cloud.dialogflow.v2.Intent.Message.Text;
 import com.google.cloud.dialogflow.v2.Intent.TrainingPhrase.Part;
 import com.google.cloud.dialogflow.v2.TextInput.Builder;
@@ -80,15 +82,15 @@ public class IntentManagement {
 		}
 	}
 	
-	public Object detectIntent(String displayName, String sessionId) {
+	public Object detectIntent(DialogflowRequest request) {
 		try{
 			SessionsClient sessionsClient = SessionsClient.create();
 			// Set the session name using the sessionId (UUID) and projectID (my-project-id)
-		    SessionName session = SessionName.of(projectId, sessionId);
+		    SessionName session = SessionName.of(projectId, request.getSession());
 		    System.out.println("Session Path: " + session.toString());
 		    
 		    // Set the text (hello) and language code (en-US) for the query
-	        Builder textInput = TextInput.newBuilder().setText(displayName).setLanguageCode(languageCode);
+	        Builder textInput = TextInput.newBuilder().setText(request.getMessage()).setLanguageCode(languageCode);
 
 	        // Build the query with the TextInput
 	        QueryInput queryInput = QueryInput.newBuilder().setText(textInput).build();
@@ -98,8 +100,22 @@ public class IntentManagement {
 
 	        // Display the query result
 	        QueryResult queryResult = response.getQueryResult();
-		    
-	        return queryResult.getFulfillmentText();
+	        List<String> listMessage = new ArrayList<>();
+	        for(Message message : queryResult.getFulfillmentMessagesList()) {
+	        	Platform platform =  message.getPlatform();
+	        	//PLATFORM LINE
+		    	if(platform.getNumber() == 6) {
+		    		listMessage.add(toTextString(message.getText().toString()));
+		    	}
+	        }
+		    /*for(Message message : queryResult.getFulfillmentMessagesList()) {
+		    	Platform platform =  message.getPlatform();
+		    	//PLATFORM LINE
+		    	if(platform.getNumber() == 6) {
+		    		result = result.concat(message.getText().toString());
+		    	}
+		    }*/
+		    return listMessage;
 		}catch (Exception e) {
 			// TODO: handle exception
 		}
@@ -192,11 +208,11 @@ public class IntentManagement {
 	    return message;
 	}
 	
-	public Object deleteIntent(String intentName) throws Exception {
+	public Object deleteIntent(DialogflowRequest request) throws Exception {
 		// Instantiates a client
 		try{
 			IntentsClient intentsClient = IntentsClient.create();
-			Intent intent = selectIntent(intentName);
+			Intent intent = selectIntent(request.getMessage());
 			String result = null;
 			if(intent != null) {
 				// Performs the delete intent request
@@ -226,5 +242,12 @@ public class IntentManagement {
 			// TODO: handle exception
 			return null;
 		}
+	}
+	
+	private String toTextString(String result) {
+		String lengthText = "text: ";
+		result = result.substring(lengthText.length());
+		result = result.replace("\"", "");
+		return result;
 	}
 }
